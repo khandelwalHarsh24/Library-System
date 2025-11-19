@@ -4,7 +4,6 @@ package com.librarysystem.book.service;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import org.hibernate.query.Page;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -109,6 +108,7 @@ public class BookServiceImpl implements BookService {
 	public String incrementCopies(Long id) throws BookServiceException {
 		// TODO Auto-generated method stub
 		Book bookInfo=bookRepo.findById(id).orElseThrow(()->new BookServiceException("Book not found with ID: " + id));
+		if(bookInfo.getAvailableCopies()==bookInfo.getTotalCopies()) throw new BookServiceException("Available Copies equal to total copies");
 		bookInfo.setAvailableCopies(bookInfo.getAvailableCopies()+1);
 		bookRepo.save(bookInfo);
 		return "Available Copies Updated";

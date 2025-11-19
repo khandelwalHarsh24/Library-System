@@ -18,9 +18,9 @@ public class NotifyServiceImpl implements NotifyService {
 	@Override
 	public void sendNotification(NotifyRequest request) {
 		SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo("khandelwalharsh0003@gmail.com");
-        message.setSubject("hello");
-        message.setText("testing Mail");
+        message.setTo(request.getToEmail());
+        message.setSubject(request.getSubject());
+        message.setText(request.getBody());
         mailSender.send(message);
 	}
 

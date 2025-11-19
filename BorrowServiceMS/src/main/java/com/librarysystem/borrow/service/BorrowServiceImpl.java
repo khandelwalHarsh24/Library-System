@@ -1,11 +1,13 @@
 package com.librarysystem.borrow.service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -30,6 +32,9 @@ public class BorrowServiceImpl implements BorrowService  {
 	
 	@Autowired
 	ModelMapper modelMapper;
+	
+	@Autowired
+	private JwtService jwtService;
 
 	@Override
 	public String borrowBook(Long userId,Long bookId,String token) throws BorrowServiceException{
@@ -52,8 +57,11 @@ public class BorrowServiceImpl implements BorrowService  {
         record.setBorrowDate(LocalDateTime.now());
         record.setDueDate(LocalDateTime.now().plusDays(14)); // US-21
         record.setStatus("Borrowed");
+        String email = jwtService.extractEmail(token);
+        System.out.println(email);
+        record.setUserEmail(email);
         NotifyRequest event = new NotifyRequest(
-                "khandelwalharsh0003@gmail.com",
+        		email,
                 "Book Borrowed",
                 "You borrowed '" + book.getTitle() + "' and it’s due on " + record.getDueDate()
             );
@@ -69,9 +77,16 @@ public class BorrowServiceImpl implements BorrowService  {
                 .orElseThrow(() -> new BorrowServiceException("No active borrow found."));
 		record.setStatus("Returned");
 		record.setReturnDate(LocalDateTime.now());
-		borrowRepo.save(record);
-	
-		String msg=webClient.put().uri("http://localhost:4000/api/v1/books/increment/"+bookId).header("Authorization", token).retrieve().bodyToMono(String.class).block();      
+		System.out.println(record.getUserEmail());
+		NotifyRequest event = new NotifyRequest(
+				record.getUserEmail(),
+                "Book returned",
+                "Thank you for returning book ID " + bookId +
+                " on " + LocalDate.now() + ". Hope you enjoyed reading!"
+            );
+		String msg=webClient.put().uri("http://localhost:4000/api/v1/books/increment/"+bookId).header("Authorization", token).retrieve().bodyToMono(String.class).block(); 
+		kafkaProducerService.sendNotification(event);
+		borrowRepo.save(record);;
 		return msg;
 	}
 
@@ -94,6 +109,24 @@ public class BorrowServiceImpl implements BorrowService  {
 		return modelMapper.map(borrowHistory,new TypeToken<List<BorrowDTO>>() {
 		}.getType());
 	}
+	
+	
+	@Scheduled(cron = "0 0 9 * * ?") // Every day at 9 AM
+    public void sendDueDateReminders() {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime dueSoon = now.plusDays(2);
+
+        List<Borrow> records = borrowRepo.findDueSoonBorrows(now, dueSoon);
+
+        for (Borrow record : records) {
+        	NotifyRequest event = new NotifyRequest(
+               record.getUserEmail(),
+                "Book Due Soon",
+                "Reminder: Your book is due on " + record.getDueDate().toLocalDate()
+            );
+            kafkaProducerService.sendNotification(event);
+        }
+    }
 	
 	
 	

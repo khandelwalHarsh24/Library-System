@@ -1,4 +1,4 @@
-package com.librarysystem.borrow.utilty;
+package com.librarysystem.auth.utility;
 
 import java.time.LocalDateTime;
 
@@ -6,7 +6,6 @@ public class ErrorInfo {
 	private String errorMessage;
 	private Integer errorCode;
 	private LocalDateTime timestamp;
-
 	public String getErrorMessage() {
 		return errorMessage;
 	}

@@ -1,11 +1,9 @@
-package com.librarysystem.auth.service;
+package com.librarysystem.borrow.service;
 
 import java.security.Key;
 import java.util.Date;
 
 import org.springframework.stereotype.Service;
-
-import com.librarysystem.auth.exception.AuthException;
 
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -32,8 +30,7 @@ public class JwtService {
 	                .compact();
 	 }
 	 
-	 public String extractRole(String token) throws AuthException {
-		    if(!isTokenValid(token)) throw new AuthException("Invalid JWT");
+	 public String extractRole(String token) {
 	        return Jwts.parserBuilder()
 	                .setSigningKey(getSigningKey())
 	                .build()
@@ -42,33 +39,16 @@ public class JwtService {
 	                .get("role",String.class);
 	 }
 	 
-	 public String extractEmail(String token) throws AuthException {
-		  if(!isTokenValid(token)) throw new AuthException("Invalid JWT");
+	 public String extractEmail(String token) {
+	        if (token.startsWith("Bearer ")) {
+	            token = token.substring(7);
+	        }
 	        return Jwts.parserBuilder()
 	                .setSigningKey(getSigningKey())
 	                .build()
 	                .parseClaimsJws(token)
 	                .getBody()
-	                .getSubject();
-	 }
+	                .getSubject();  // this will return email if stored in `sub`
+	    }
 	 
-//	 public Long extractId(String token) {
-//		 return Jwts.parserBuilder()
-//	                .setSigningKey(getSigningKey())
-//	                .build()
-//	                .parseClaimsJws(token)
-//	                .getBody().get("userId",Long.class);
-//	 }
-	 
-	 public boolean isTokenValid(String token) {
-	        try {
-	            Jwts.parserBuilder()
-	                .setSigningKey(getSigningKey())
-	                .build()
-	                .parseClaimsJws(token);
-	            return true;
-	        } catch (JwtException e) {
-	            return false;
-	        }
-	 }
 }

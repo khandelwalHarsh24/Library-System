@@ -11,4 +11,5 @@ public interface BorrowService {
 	public String returnedBook(Long userId,Long bookId,String token) throws BorrowServiceException;
 	public List<BorrowDTO> currentBorrowBook(Long userId) throws BorrowServiceException;
 	public List<BorrowDTO> borrowHistory(Long userId) throws BorrowServiceException;
+	public void sendDueDateReminders();
 }

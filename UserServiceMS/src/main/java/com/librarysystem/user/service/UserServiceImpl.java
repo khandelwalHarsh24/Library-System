@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -36,6 +38,8 @@ public class UserServiceImpl implements UserService{
 	@Autowired
 	PasswordEncoder passwordEncoder;
 	
+	private static final Logger LOGGER = LogManager.getLogger(UserService.class);
+	
 	
 
 	@Override
@@ -52,6 +56,7 @@ public class UserServiceImpl implements UserService{
 			userDto.setCreatedAt(LocalDateTime.now());
 		}
 		userDto.setPassword(new BCryptPasswordEncoder().encode(userDto.getPassword()));
+		LOGGER.info("User Register Successfully");
 		return userRepository.save(modelMapper.map(userDto, User.class)).getUserId();
 	}
 
@@ -70,6 +75,7 @@ public class UserServiceImpl implements UserService{
                 .retrieve()
                 .bodyToMono(AuthResponse.class)
                 .block(); 
+		LOGGER.info("User Login Successfully");
 		return data;
 	}
 
@@ -83,6 +89,7 @@ public class UserServiceImpl implements UserService{
 			    .map(user -> modelMapper.map(user, UserDTO.class))
 			    .collect(Collectors.toList());
 		if(userDTOList==null) throw new UserServiceException("Not Exist Any Users");
+		LOGGER.info("Successfully Retrieve data");
 		return userDTOList;
 	}
 	
@@ -93,6 +100,7 @@ public class UserServiceImpl implements UserService{
 		User user= userRepository.findById(id).orElseThrow(()->new UserServiceException("User does not exist"));
 		Role newRole=(role=="USER")? Role.USER: Role.ADMIN;
 		user.setRole(newRole);
+		LOGGER.info("Update User Successfully");
 		userRepository.save(user);
 	}
 
@@ -101,6 +109,7 @@ public class UserServiceImpl implements UserService{
 	public UserDTO userProfile() throws UserServiceException {
 		String email=SecurityContextHolder.getContext().getAuthentication().getName();
 		User userData=userRepository.findByEmail(email);
+		LOGGER.info("User Profile Retrieved Successfully");
 		return modelMapper.map(userData, UserDTO.class);
 	}
 	

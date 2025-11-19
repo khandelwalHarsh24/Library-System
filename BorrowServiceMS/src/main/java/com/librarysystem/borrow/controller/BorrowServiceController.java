@@ -27,7 +27,6 @@ public class BorrowServiceController {
 	@PostMapping("book/{userId}")
 	public ResponseEntity<String> borrowBook(@PathVariable Long userId,@RequestParam Long bookId,@RequestHeader("Authorization") String token) throws BorrowServiceException{
 		String response=borrowService.borrowBook(userId, bookId, token);
-		System.out.println(response);
 		return new ResponseEntity<String> (response,HttpStatus.OK);
 	}
 	

@@ -12,6 +12,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -30,8 +31,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         String token = request.getHeader("Authorization");
         if (token == null || !token.startsWith("Bearer ")) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("Unauthorized: Missing or invalid Authorization header");
+        	respondUnauthorized(response, "Unauthorized: Missing or invalid Authorization header");
             return;
         }
             try {
@@ -51,10 +51,17 @@ public class AuthTokenFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(auth);
                 chain.doFilter(request, response);
 
+            } catch (WebClientResponseException e) {
+                respondUnauthorized(response, e.getResponseBodyAsString());
             } catch (Exception e) {
-                response.setStatus(HttpStatus.UNAUTHORIZED.value());
-                return;
+                respondUnauthorized(response, "Unexpected error occurred while validating token.");
             }
+    }
+	
+	private void respondUnauthorized(HttpServletResponse response, String message) throws IOException {
+        response.setStatus(HttpStatus.UNAUTHORIZED.value());
+        response.setContentType("application/json");
+        response.getWriter().write(message);
     }
 
 

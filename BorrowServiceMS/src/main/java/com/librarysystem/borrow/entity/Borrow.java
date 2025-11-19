@@ -21,6 +21,7 @@ public class Borrow {
     private LocalDateTime borrowDate;
     private LocalDateTime dueDate;
     private LocalDateTime returnDate;
+    private String userEmail;
     private String status;
 
 	public Long getId() {
@@ -77,5 +78,13 @@ public class Borrow {
 
 	public void setStatus(String status) {
 		this.status = status;
+	}
+
+	public String getUserEmail() {
+		return userEmail;
+	}
+
+	public void setUserEmail(String userEmail) {
+		this.userEmail = userEmail;
 	}
 }

@@ -1,4 +1,4 @@
-package com.librarysystem.book.utility;
+package com.librarysystem.auth.utility;
 
 import java.time.LocalDateTime;
 import java.util.stream.Collectors;
@@ -9,11 +9,9 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import com.librarysystem.book.exception.BookServiceException;
+import com.librarysystem.auth.exception.AuthException;
 
 import jakarta.validation.ConstraintViolationException;
-
-
 
 @RestControllerAdvice
 public class ExceptionControllerAdvice {
@@ -28,16 +26,16 @@ public class ExceptionControllerAdvice {
         return new ResponseEntity<ErrorInfo>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
     
-    @ExceptionHandler(BookServiceException.class)
-    public ResponseEntity<ErrorInfo> authServiceException(BookServiceException ex) {
+	@ExceptionHandler(AuthException.class)
+    public ResponseEntity<ErrorInfo> authServiceException(AuthException ex) {
     	ErrorInfo error = new ErrorInfo();
         error.setErrorMessage(ex.getMessage());
         error.setErrorCode(HttpStatus.NOT_FOUND.value());
         error.setTimestamp(LocalDateTime.now());
         return new ResponseEntity<ErrorInfo>(error, HttpStatus.NOT_FOUND);
     }
-    
-    @ExceptionHandler(MethodArgumentNotValidException.class)
+	
+	@ExceptionHandler(MethodArgumentNotValidException.class)
 	public ResponseEntity<ErrorInfo> exceptionHandler(MethodArgumentNotValidException exception) {
 			ErrorInfo errorInfo = new ErrorInfo();
 			errorInfo.setErrorCode(HttpStatus.BAD_REQUEST.value());
@@ -59,4 +57,6 @@ public class ExceptionControllerAdvice {
 		errorInfo.setTimestamp(LocalDateTime.now());
 		return new ResponseEntity<>(errorInfo, HttpStatus.BAD_REQUEST);
 	}
+	
+
 }
